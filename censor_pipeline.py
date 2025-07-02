@@ -6,13 +6,6 @@ import whisper
 import ffmpeg
 from better_profanity import profanity
 
-try:
-    import google.colab
-    from google.colab import files
-    IN_COLAB = True
-except ImportError:
-    IN_COLAB = False
-
 def normalize_word(word):
     return re.sub(r"[^\w\s]", "", word.lower())
 
@@ -50,17 +43,37 @@ def process_video(filename, model, output_dir="."):
     else:
         ffmpeg.input(filename).output(output_video, vcodec='copy', acodec='copy').run(overwrite_output=True)
 
-    if IN_COLAB:
+    if is_colab():
+        from google.colab import files
         files.download(transcript_file)
         files.download(output_video)
     else:
         print(f"✅ Saved to:\n- {transcript_file}\n- {output_video}")
 
-def main():
+def is_colab():
+    try:
+        import google.colab
+        return True
+    except ImportError:
+        return False
+
+def colab_main():
+    from google.colab import files
+    print("📂 Upload MP4 videos (1–∞)")
+    uploaded = files.upload()
+    model = whisper.load_model("base")
+    profanity.load_censor_words()
+    profanity.add_censor_words([
+        "hell", "hells", "hell's", "damn", "wtf", "crap", "shit", "fuck", "holy shit", "ass", "bastard"
+    ])
+    for f in uploaded:
+        process_video(f, model)
+
+def cli_main():
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input", type=str, help="Input folder with MP4s")
-    parser.add_argument("--output", type=str, default=".", help="Output folder")
+    parser.add_argument("--input", type=str, help="Input folder with MP4s", required=True)
+    parser.add_argument("--output", type=str, help="Output folder", default=".")
     args = parser.parse_args()
 
     profanity.load_censor_words()
@@ -69,19 +82,17 @@ def main():
     ])
     model = whisper.load_model("base")
 
-    if IN_COLAB:
-        print("📂 Upload MP4 videos (1–∞)")
-        uploaded = files.upload()
-        for f in uploaded:
-            process_video(f, model)
+    os.makedirs(args.output, exist_ok=True)
+
+    for file in os.listdir(args.input):
+        if file.lower().endswith(".mp4"):
+            process_video(os.path.join(args.input, file), model, output_dir=args.output)
+
+def main():
+    if is_colab():
+        colab_main()
     else:
-        input_dir = args.input
-        if not input_dir or not os.path.isdir(input_dir):
-            raise ValueError("❌ Input folder is required outside Colab. Use --input /your/folder")
-        os.makedirs(args.output, exist_ok=True)
-        for f in os.listdir(input_dir):
-            if f.lower().endswith(".mp4"):
-                process_video(os.path.join(input_dir, f), model, output_dir=args.output)
+        cli_main()
 
 if __name__ == "__main__":
     main()
