@@ -1,5 +1,3 @@
-# censor_pipeline.py
-
 import whisper
 from pydub import AudioSegment
 from better_profanity import profanity
@@ -54,11 +52,3 @@ for filename in uploaded:
     files.download(output_video)
 
 print("\n✅ All files processed.")
-
-So I can use it with 
-
-!git clone https://github.com/MurderGnome/profanity_sanitizer.git
-%cd profanity_sanitizer
-!pip install -q -r requirements.txt
-!apt -q update && apt install -y ffmpeg
-!python censor_pipeline.py
