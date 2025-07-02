@@ -5,7 +5,7 @@ Click below to open a google colab notebook
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/MurderGnome/profanity_sanitizer/blob/main/censor_pipeline.ipynb)
 
-# or
+## or
 
 Paste this into a Colab cell to clone & run:
 
