@@ -6,7 +6,6 @@ from better_profanity import profanity
 import os
 import ffmpeg
 
-# Google Colab specific: upload
 from google.colab import files
 
 print("📂 Upload MP4 videos (1–∞)")
@@ -23,10 +22,8 @@ for filename in uploaded:
 
     print(f"\n🎬 Processing: {filename}")
 
-    # Convert audio
     ffmpeg.input(filename).output(audio_output, ac=1, ar='16000').run(overwrite_output=True)
 
-    # Transcribe
     result = model.transcribe(audio_output, word_timestamps=True, verbose=False)
     transcript = result["text"]
     censored_text = profanity.censor(transcript)
@@ -34,14 +31,12 @@ for filename in uploaded:
     with open(transcript_file, "w") as f:
         f.write(censored_text)
 
-    # Detect profanity ranges
     mute_ranges = []
     for segment in result["segments"]:
         for word in segment.get("words", []):
             if profanity.contains_profanity(word["word"].strip().lower()):
                 mute_ranges.append((word["start"], word["end"]))
 
-    # Build filter
     def generate_combined_volume_filter(ranges):
         if not ranges:
             return None
