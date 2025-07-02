@@ -1,0 +1,4 @@
+git+https://github.com/openai/whisper.git
+pydub
+better_profanity
+ffmpeg-python
